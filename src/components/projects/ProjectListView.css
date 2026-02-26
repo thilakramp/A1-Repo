@@ -1,0 +1,87 @@
+.projects-table-container {
+    overflow-x: auto;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    min-width: 1000px;
+}
+
+.projects-table th {
+    background-color: var(--bg-primary);
+    padding: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.projects-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.projects-table tbody tr {
+    transition: background-color var(--transition-fast);
+    cursor: pointer;
+}
+
+.projects-table tbody tr:hover {
+    background-color: var(--bg-primary);
+}
+
+.projects-table tr:last-child td {
+    border-bottom: none;
+}
+
+.project-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.project-type {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.project-status-badge {
+    display: inline-flex;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.project-date-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.project-date-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
