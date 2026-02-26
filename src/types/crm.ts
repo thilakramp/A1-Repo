@@ -21,4 +21,15 @@ export interface Lead {
     followUpDate: string; // ISO string format
     createdAt: string;
     updatedAt: string;
+    logs?: LeadLog[];
+}
+
+export interface LeadLog {
+    id: string;
+    action: string;
+    previousStage?: PipelineStage;
+    newStage?: PipelineStage;
+    userId: string;
+    userName: string;
+    timestamp: string;
 }

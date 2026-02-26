@@ -3,8 +3,9 @@ import { LayoutGrid, List, Plus } from 'lucide-react';
 import { KanbanView } from '../../components/crm/KanbanView';
 import { ListView } from '../../components/crm/ListView';
 import { LeadModal } from '../../components/crm/LeadModal';
+import { useAuth } from '../../context/AuthContext';
 import { crmApi } from '../../services/api/crm';
-import type { Lead, PipelineStage } from '../../types/crm';
+import type { Lead, PipelineStage, LeadLog } from '../../types/crm';
 import './LeadsManager.css';
 
 type ViewMode = 'kanban' | 'list';
@@ -13,6 +14,7 @@ export function LeadsManager() {
     const [viewMode, setViewMode] = useState<ViewMode>('kanban');
     const [leads, setLeads] = useState<Lead[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useAuth();
 
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,10 +37,24 @@ export function LeadsManager() {
     };
 
     const handleStageChange = async (leadId: string, newStage: PipelineStage) => {
+        const lead = leads.find(l => l.id === leadId);
+        if (!lead || lead.stage === newStage) return;
+
+        const logEntry: LeadLog = {
+            id: `log-${Date.now()}`,
+            action: 'Stage Changed',
+            previousStage: lead.stage,
+            newStage,
+            userId: user?.id || 'sys',
+            userName: user?.name || 'System',
+            timestamp: new Date().toISOString()
+        };
+        const newLogs = [...(lead.logs || []), logEntry];
+
         // Optimistic UI update
-        setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: newStage } : l));
+        setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: newStage, logs: newLogs } : l));
         try {
-            await crmApi.updateLead(leadId, { stage: newStage });
+            await crmApi.updateLead(leadId, { stage: newStage, logs: newLogs });
         } catch (error) {
             console.error('Failed to update stage:', error);
             // Revert on failure
@@ -63,7 +79,21 @@ export function LeadsManager() {
 
     const handleUpdateLead = async (id: string, updates: Partial<Lead>) => {
         try {
-            await crmApi.updateLead(id, updates);
+            const lead = leads.find(l => l.id === id);
+            const finalUpdates = { ...updates };
+            if (lead && updates.stage && updates.stage !== lead.stage) {
+                const logEntry: LeadLog = {
+                    id: `log-${Date.now()}`,
+                    action: 'Stage Changed',
+                    previousStage: lead.stage,
+                    newStage: updates.stage,
+                    userId: user?.id || 'sys',
+                    userName: user?.name || 'System',
+                    timestamp: new Date().toISOString()
+                };
+                finalUpdates.logs = [...(lead.logs || []), logEntry];
+            }
+            await crmApi.updateLead(id, finalUpdates);
             fetchLeads();
             setIsModalOpen(false);
         } catch (error) {

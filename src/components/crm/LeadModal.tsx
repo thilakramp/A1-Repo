@@ -186,6 +186,27 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
                             <textarea className="form-textarea" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
                         </div>
 
+                        {existingLead?.logs && existingLead.logs.length > 0 && (
+                            <div className="form-group">
+                                <label className="form-label">Activity Log</label>
+                                <div className="activity-log-container" style={{ marginTop: '8px', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', background: 'var(--bg-tertiary)', maxHeight: '200px', overflowY: 'auto' }}>
+                                    {existingLead.logs.slice().reverse().map(log => (
+                                        <div key={log.id} className="activity-log-item" style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{log.userName}</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                    {new Date(log.timestamp).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                                Changed stage from <strong>{log.previousStage}</strong> to <strong>{log.newStage}</strong>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                     </div>
 
                     <div className="modal-footer" style={{ justifyContent: existingLead ? 'space-between' : 'flex-end' }}>
