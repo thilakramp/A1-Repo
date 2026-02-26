@@ -4,16 +4,31 @@ import type { Lead, PipelineStage, LeadSource } from '../../types/crm';
 import { PIPELINE_STAGES, LEAD_SOURCES } from '../../utils/crmUtils';
 import './LeadModal.css';
 
+export interface LeadFormData {
+    name: string;
+    phone: string;
+    email: string;
+    company: string;
+    source: LeadSource;
+    stage: PipelineStage;
+    budget: string;
+    requirements: string;
+    notes: string;
+    assignedTo: string;
+    followUpDate: string;
+    socials: { instagram?: string; linkedin?: string; twitter?: string; };
+}
+
 interface LeadModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-    onUpdate?: (id: string, updates: Partial<Lead>) => Promise<void>;
+    onSave: (data: LeadFormData) => Promise<void>;
+    onUpdate?: (id: string, updates: Partial<LeadFormData>) => Promise<void>;
     onDelete?: (id: string) => Promise<void>;
     existingLead?: Lead | null;
 }
 
-const emptyLeadData = {
+const emptyLeadData: LeadFormData = {
     name: '',
     phone: '',
     email: '',
@@ -29,18 +44,27 @@ const emptyLeadData = {
 };
 
 export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existingLead }: LeadModalProps) {
-    const [formData, setFormData] = useState(emptyLeadData);
+    const [formData, setFormData] = useState<LeadFormData>(emptyLeadData);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         if (existingLead) {
             setFormData({
-                ...existingLead,
+                name: existingLead.client?.name || '',
+                phone: existingLead.client?.phone || '',
+                email: existingLead.client?.email || '',
+                company: existingLead.client?.company || '',
+                source: existingLead.source,
+                stage: existingLead.stage,
+                budget: existingLead.budget,
+                requirements: existingLead.requirements,
+                notes: existingLead.notes,
+                assignedTo: existingLead.assignedTo,
                 socials: {
-                    instagram: existingLead.socials?.instagram || '',
-                    linkedin: existingLead.socials?.linkedin || '',
-                    twitter: existingLead.socials?.twitter || ''
+                    instagram: existingLead.client?.socials?.instagram || '',
+                    linkedin: existingLead.client?.socials?.linkedin || '',
+                    twitter: existingLead.client?.socials?.twitter || ''
                 },
                 followUpDate: existingLead.followUpDate.split('T')[0],
             });
@@ -98,7 +122,7 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
                         <button className="close-btn" onClick={() => setShowDeleteConfirm(false)}><X size={20} /></button>
                     </div>
                     <div className="modal-body">
-                        <p>Are you sure you want to permanently delete <strong>{existingLead?.name}</strong>? This action cannot be undone.</p>
+                        <p>Are you sure you want to permanently delete <strong>{existingLead?.client?.name || 'this lead'}</strong>? This action cannot be undone.</p>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={isSubmitting}>Cancel</button>

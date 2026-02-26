@@ -8,7 +8,8 @@ import {
     Scissors,
     WalletCards,
     LogOut,
-    Share2
+    Share2,
+    BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { Role } from '../../types';
@@ -30,6 +31,7 @@ interface NavItem {
 const navItems: NavItem[] = [
     { id: 'dashboard', path: '/', label: 'Overview', icon: <LayoutDashboard size={20} /> },
     { id: 'leads', path: '/leads', label: 'CRM Leads', icon: <Target size={20} />, allowedRoles: ['Admin', 'Manager'] },
+    { id: 'clients', path: '/clients', label: 'Client Details', icon: <BookOpen size={20} />, allowedRoles: ['Admin', 'Manager'] },
     { id: 'users', path: '/users', label: 'Users & Roles', icon: <Users size={20} />, allowedRoles: ['Admin', 'Manager'] },
     { id: 'photos', path: '/photos', label: 'Photo Vault', icon: <ImageIcon size={20} />, allowedRoles: ['Admin', 'Manager', 'Photographer', 'Editor', 'Client'] },
     { id: 'videos', path: '/videos', label: 'Video Vault', icon: <Video size={20} />, allowedRoles: ['Admin', 'Manager', 'Videographer', 'Editor', 'Client'] },

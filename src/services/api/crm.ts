@@ -1,16 +1,13 @@
 import type { Lead } from '../../types/crm';
+import { MOCK_CLIENTS } from './client';
 
 // --- MOCK DATA ---
 let MOCK_LEADS: Lead[] = [
     {
         id: 'lead-1',
-        name: 'Sarah Jenkins',
-        phone: '+1 555-0198',
-        email: 'sarah.j@techstart.io',
-        company: 'TechStart',
+        clientId: 'client-1',
         source: 'Website',
         stage: 'New',
-        socials: { linkedin: 'linkedin.com/in/sjenkins' },
         budget: '$5,000 - $10,000',
         requirements: 'Needs a corporate promo video for their upcoming product launch.',
         notes: 'Very interested in drone footage.',
@@ -21,13 +18,9 @@ let MOCK_LEADS: Lead[] = [
     },
     {
         id: 'lead-2',
-        name: 'Michael Chang',
-        phone: '+1 555-0234',
-        email: 'm.chang@designco.com',
-        company: 'Design Co',
+        clientId: 'client-2',
         source: 'Instagram',
         stage: 'Contacted',
-        socials: { instagram: '@mikechang_design' },
         budget: '$2,000',
         requirements: 'Photography session for team headshots.',
         notes: 'Wants outdoor lighting setup.',
@@ -38,13 +31,9 @@ let MOCK_LEADS: Lead[] = [
     },
     {
         id: 'lead-3',
-        name: 'Emma Watson',
-        phone: '+1 555-0912',
-        email: 'emma@bloomfloral.com',
-        company: 'Bloom Floral',
+        clientId: 'client-3',
         source: 'Referral',
         stage: 'Meeting Scheduled',
-        socials: {},
         budget: '$15,000',
         requirements: 'Full branding content package (Photo + Video array)',
         notes: 'Referred by John Doe. High priority.',
@@ -56,6 +45,13 @@ let MOCK_LEADS: Lead[] = [
 ];
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export function hydrateLead(lead: Lead): Lead {
+    return {
+        ...lead,
+        client: MOCK_CLIENTS.find(c => c.id === lead.clientId)
+    };
+}
 
 class CrmService {
     /**
@@ -77,7 +73,7 @@ class CrmService {
 
     async getLeads(): Promise<Lead[]> {
         await delay(500); // Simulate network latency
-        return [...MOCK_LEADS];
+        return MOCK_LEADS.map(hydrateLead);
     }
 
     /**
@@ -85,14 +81,15 @@ class CrmService {
      */
     async createLead(leadData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>): Promise<Lead> {
         await delay(600);
+        const { client, ...restData } = leadData;
         const newLead: Lead = {
-            ...leadData,
+            ...restData,
             id: `lead-${Date.now()}`,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
         MOCK_LEADS.push(newLead);
-        return newLead;
+        return hydrateLead(newLead);
     }
 
     /**
@@ -103,13 +100,14 @@ class CrmService {
         const index = MOCK_LEADS.findIndex(l => l.id === id);
         if (index === -1) throw new Error('Lead not found');
 
+        const { client, ...restUpdates } = updates;
         const updatedLead = {
             ...MOCK_LEADS[index],
-            ...updates,
+            ...restUpdates,
             updatedAt: new Date().toISOString()
         };
         MOCK_LEADS[index] = updatedLead;
-        return updatedLead;
+        return hydrateLead(updatedLead);
     }
 
     /**

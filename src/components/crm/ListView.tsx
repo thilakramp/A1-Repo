@@ -105,16 +105,16 @@ export function ListView({ leads, onEditLead }: ListViewProps) {
                         {filteredLeads.map((lead) => (
                             <tr key={lead.id} onClick={() => onEditLead(lead)}>
                                 <td>
-                                    <div style={{ fontWeight: 600 }}>{lead.name}</div>
-                                    {lead.company && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{lead.company}</div>}
+                                    <div style={{ fontWeight: 600 }}>{lead.client?.name || 'Unknown Client'}</div>
+                                    {lead.client?.company && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{lead.client.company}</div>}
                                 </td>
                                 <td>
                                     <div className="contact-cell">
                                         <span className="contact-item">
-                                            <Phone size={12} /> {lead.phone}
+                                            <Phone size={12} /> {lead.client?.phone || '-'}
                                         </span>
                                         <span className="contact-item">
-                                            <Mail size={12} /> {truncateText(lead.email, 20)}
+                                            <Mail size={12} /> {lead.client?.email ? truncateText(lead.client.email, 20) : '-'}
                                         </span>
                                     </div>
                                 </td>

@@ -61,8 +61,8 @@ export function KanbanView({ leads, onStageChange, onEditLead }: KanbanViewProps
                                 >
                                     <div className="lead-header">
                                         <div>
-                                            <div className="lead-name">{lead.name}</div>
-                                            {lead.company && <div className="lead-company">{lead.company}</div>}
+                                            <div className="lead-name">{lead.client?.name || 'Unknown Client'}</div>
+                                            {lead.client?.company && <div className="lead-company">{lead.client.company}</div>}
                                         </div>
                                         <span className="lead-source-badge">{lead.source}</span>
                                     </div>
@@ -70,7 +70,7 @@ export function KanbanView({ leads, onStageChange, onEditLead }: KanbanViewProps
                                     <div className="lead-details">
                                         <div className="lead-detail-item">
                                             <Phone size={12} />
-                                            {lead.phone}
+                                            {lead.client?.phone || '-'}
                                         </div>
                                         {lead.requirements && (
                                             <div className="lead-detail-item">

@@ -3,8 +3,10 @@ import { LayoutGrid, List, Plus } from 'lucide-react';
 import { KanbanView } from '../../components/crm/KanbanView';
 import { ListView } from '../../components/crm/ListView';
 import { LeadModal } from '../../components/crm/LeadModal';
+import type { LeadFormData } from '../../components/crm/LeadModal';
 import { useAuth } from '../../context/AuthContext';
 import { crmApi } from '../../services/api/crm';
+import { clientApi } from '../../services/api/client';
 import type { Lead, PipelineStage, LeadLog } from '../../types/crm';
 import './LeadsManager.css';
 
@@ -67,9 +69,27 @@ export function LeadsManager() {
         setIsModalOpen(true);
     };
 
-    const handleSaveLead = async (leadData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const handleSaveLead = async (formData: LeadFormData) => {
         try {
-            await crmApi.createLead(leadData);
+            // Create client first
+            const newClient = await clientApi.createClient({
+                name: formData.name,
+                phone: formData.phone,
+                email: formData.email,
+                company: formData.company,
+                socials: formData.socials,
+            });
+
+            await crmApi.createLead({
+                clientId: newClient.id,
+                source: formData.source,
+                stage: formData.stage,
+                budget: formData.budget,
+                requirements: formData.requirements,
+                notes: formData.notes,
+                assignedTo: formData.assignedTo,
+                followUpDate: formData.followUpDate,
+            });
             fetchLeads();
             setIsModalOpen(false);
         } catch (error) {
@@ -77,11 +97,35 @@ export function LeadsManager() {
         }
     };
 
-    const handleUpdateLead = async (id: string, updates: Partial<Lead>) => {
+    const handleUpdateLead = async (id: string, updates: Partial<LeadFormData>) => {
         try {
             const lead = leads.find(l => l.id === id);
-            const finalUpdates = { ...updates };
-            if (lead && updates.stage && updates.stage !== lead.stage) {
+            if (!lead) return;
+
+            // 1. Update client info
+            if (updates.name !== undefined || updates.phone !== undefined || updates.email !== undefined || updates.company !== undefined || updates.socials !== undefined) {
+                await clientApi.updateClient(lead.clientId, {
+                    name: updates.name,
+                    phone: updates.phone,
+                    email: updates.email,
+                    company: updates.company,
+                    socials: updates.socials
+                });
+            }
+
+            // 2. Update lead properties
+            const leadUpdates: Partial<Lead> = {
+                source: updates.source,
+                stage: updates.stage,
+                budget: updates.budget,
+                requirements: updates.requirements,
+                notes: updates.notes,
+                assignedTo: updates.assignedTo,
+                followUpDate: updates.followUpDate
+            };
+
+            const finalUpdates = { ...leadUpdates };
+            if (updates.stage && updates.stage !== lead.stage) {
                 const logEntry: LeadLog = {
                     id: `log-${Date.now()}`,
                     action: 'Stage Changed',

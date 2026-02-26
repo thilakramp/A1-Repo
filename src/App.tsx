@@ -13,6 +13,7 @@ import { SocialManager } from './pages/social/SocialManager';
 import { UsersManager } from './pages/users/UsersManager';
 import { PhotoVault } from './pages/photos/PhotoVault';
 import { VideoVault } from './pages/videos/VideoVault';
+import { ClientsManager } from './pages/clients/ClientsManager';
 
 function App() {
   return (
@@ -28,6 +29,12 @@ function App() {
               <Route path="/leads" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Manager']}>
                   <LeadsManager />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/clients" element={
+                <ProtectedRoute allowedRoles={['Admin', 'Manager']}>
+                  <ClientsManager />
                 </ProtectedRoute>
               } />
 
