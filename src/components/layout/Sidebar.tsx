@@ -7,9 +7,9 @@ import {
     Video,
     Scissors,
     WalletCards,
-    LogOut,
     Share2,
-    BookOpen
+    BookOpen,
+    Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { Role } from '../../types';
@@ -38,10 +38,11 @@ const navItems: NavItem[] = [
     { id: 'social', path: '/social', label: 'Social Workflow', icon: <Share2 size={20} />, allowedRoles: ['Admin', 'Manager', 'Editor'] },
     { id: 'projects', path: '/projects', label: 'Projects & Shoots', icon: <Scissors size={20} />, allowedRoles: ['Admin', 'Manager', 'Editor', 'Photographer', 'Videographer'] },
     { id: 'finance', path: '/finance', label: 'Finances', icon: <WalletCards size={20} />, allowedRoles: ['Admin', 'Manager', 'Accountant'] },
+    { id: 'settings', path: '/settings', label: 'Module Settings', icon: <Settings size={20} />, allowedRoles: ['Admin'] },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     const filteredNavItems = navItems.filter(item => {
         if (!item.allowedRoles) return true;
@@ -78,13 +79,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </NavLink>
                     ))}
                 </nav>
-
-                <div className="sidebar-footer">
-                    <button onClick={logout} className="logout-btn">
-                        <LogOut size={20} />
-                        <span>Sign Out</span>
-                    </button>
-                </div>
             </aside>
         </>
     );

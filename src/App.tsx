@@ -14,6 +14,7 @@ import { UsersManager } from './pages/users/UsersManager';
 import { PhotoVault } from './pages/photos/PhotoVault';
 import { VideoVault } from './pages/videos/VideoVault';
 import { ClientsManager } from './pages/clients/ClientsManager';
+import { SettingsManager } from './pages/settings/SettingsManager';
 
 function App() {
   return (
@@ -77,6 +78,12 @@ function App() {
               <Route path="/subscriptions" element={
                 <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Accountant']}>
                   <SubscriptionManager />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/settings" element={
+                <ProtectedRoute allowedRoles={['Admin']}>
+                  <SettingsManager />
                 </ProtectedRoute>
               } />
             </Route>
