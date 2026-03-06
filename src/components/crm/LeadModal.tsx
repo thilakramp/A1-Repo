@@ -54,6 +54,7 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [clientsList, setClientsList] = useState<Client[]>([]);
+    const [suggestedClient, setSuggestedClient] = useState<Client | null>(null);
 
     useEffect(() => {
         clientApi.getClients().then(setClientsList).catch(console.error);
@@ -83,8 +84,39 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
             });
         } else {
             setFormData(emptyLeadData);
+            setSuggestedClient(null);
         }
     }, [existingLead, isOpen]);
+
+    const handlePhoneChange = (newPhone: string) => {
+        setFormData({ ...formData, phone: newPhone });
+
+        // If not editing an existing lead, and they type a matching phone, suggest it
+        if (!existingLead && newPhone.length >= 7) {
+            const match = clientsList.find(c => c.phone && c.phone === newPhone);
+            if (match && formData.clientId !== match.id) {
+                setSuggestedClient(match);
+            } else {
+                setSuggestedClient(null);
+            }
+        } else {
+            setSuggestedClient(null);
+        }
+    };
+
+    const handleAutofillClient = () => {
+        if (!suggestedClient) return;
+        setFormData({
+            ...formData,
+            isNewClient: false,
+            clientId: suggestedClient.id,
+            name: suggestedClient.name,
+            phone: suggestedClient.phone || '',
+            email: suggestedClient.email || '',
+            company: suggestedClient.company || ''
+        });
+        setSuggestedClient(null);
+    };
 
     if (!isOpen) return null;
 
@@ -159,39 +191,28 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <div className="modal-body">
 
-                        {!existingLead && clientsList.length > 0 && (
-                            <div className="form-group" style={{ marginBottom: '16px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
-                                <label className="form-label">Client Selection</label>
-                                <select
-                                    className="form-select"
-                                    value={formData.isNewClient ? 'new' : formData.clientId}
-                                    onChange={e => {
-                                        const val = e.target.value;
-                                        if (val === 'new') {
-                                            setFormData({ ...formData, isNewClient: true, clientId: '', name: '', phone: '', email: '', company: '' });
-                                        } else {
-                                            const selectedClient = clientsList.find(c => c.id === val);
-                                            if (selectedClient) {
-                                                setFormData({
-                                                    ...formData,
-                                                    isNewClient: false,
-                                                    clientId: val,
-                                                    name: selectedClient.name,
-                                                    phone: selectedClient.phone || '',
-                                                    email: selectedClient.email || '',
-                                                    company: selectedClient.company || ''
-                                                });
-                                            }
-                                        }
-                                    }}
-                                >
-                                    <option value="new">+ Create New Client</option>
-                                    <optgroup label="Existing Clients">
-                                        {clientsList.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name} {c.company ? `(${c.company})` : ''}</option>
-                                        ))}
-                                    </optgroup>
-                                </select>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                            <label className="form-label">Phone Number *</label>
+                            <input
+                                required
+                                type="tel"
+                                className="form-input"
+                                disabled={!formData.isNewClient && !existingLead}
+                                value={formData.phone}
+                                onChange={e => handlePhoneChange(e.target.value)}
+                                placeholder="Enter phone to search for existing client..."
+                            />
+                        </div>
+
+                        {suggestedClient && (
+                            <div style={{ marginBottom: '20px', padding: '12px', background: 'var(--accent-light)', border: '1px solid var(--accent-primary)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--accent-dark)', fontWeight: 600 }}>Client found: {suggestedClient.name}</p>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--accent-primary)' }}>Do you want to link this lead to {suggestedClient.name}?</p>
+                                </div>
+                                <button type="button" onClick={handleAutofillClient} style={{ background: 'var(--accent-primary)', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}>
+                                    Autofill
+                                </button>
                             </div>
                         )}
 
@@ -206,15 +227,9 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
                             </div>
                         </div>
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label">Phone</label>
-                                <input className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Email</label>
-                                <input type="email" className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                            </div>
+                        <div className="form-group">
+                            <label className="form-label">Email</label>
+                            <input type="email" className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                         </div>
 
                         <div className="form-row">
