@@ -71,17 +71,26 @@ export function LeadsManager() {
 
     const handleSaveLead = async (formData: LeadFormData) => {
         try {
-            // Create client first
-            const newClient = await clientApi.createClient({
-                name: formData.name,
-                phone: formData.phone,
-                email: formData.email,
-                company: formData.company,
-                socials: formData.socials,
-            });
+            let clientId = formData.clientId;
+
+            if (formData.isNewClient) {
+                // Create client first
+                const newClient = await clientApi.createClient({
+                    name: formData.name,
+                    phone: formData.phone,
+                    email: formData.email,
+                    company: formData.company,
+                    socials: formData.socials,
+                });
+                clientId = newClient.id;
+            }
+
+            if (!clientId) {
+                throw new Error("No client ID available");
+            }
 
             await crmApi.createLead({
-                clientId: newClient.id,
+                clientId: clientId,
                 source: formData.source,
                 stage: formData.stage,
                 budget: formData.budget,

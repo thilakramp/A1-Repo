@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import type { Lead, PipelineStage, LeadSource } from '../../types/crm';
+import type { Client } from '../../types/client';
 import { PIPELINE_STAGES, LEAD_SOURCES } from '../../utils/crmUtils';
+import { clientApi } from '../../services/api/client';
 import './LeadModal.css';
 
 export interface LeadFormData {
+    isNewClient: boolean;
+    clientId?: string;
     name: string;
     phone: string;
     email: string;
@@ -29,6 +33,8 @@ interface LeadModalProps {
 }
 
 const emptyLeadData: LeadFormData = {
+    isNewClient: true,
+    clientId: '',
     name: '',
     phone: '',
     email: '',
@@ -47,10 +53,17 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
     const [formData, setFormData] = useState<LeadFormData>(emptyLeadData);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [clientsList, setClientsList] = useState<Client[]>([]);
+
+    useEffect(() => {
+        clientApi.getClients().then(setClientsList).catch(console.error);
+    }, []);
 
     useEffect(() => {
         if (existingLead) {
             setFormData({
+                isNewClient: false,
+                clientId: existingLead.clientId,
                 name: existingLead.client?.name || '',
                 phone: existingLead.client?.phone || '',
                 email: existingLead.client?.email || '',
@@ -146,25 +159,61 @@ export function LeadModal({ isOpen, onClose, onSave, onUpdate, onDelete, existin
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <div className="modal-body">
 
+                        {!existingLead && clientsList.length > 0 && (
+                            <div className="form-group" style={{ marginBottom: '16px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
+                                <label className="form-label">Client Selection</label>
+                                <select
+                                    className="form-select"
+                                    value={formData.isNewClient ? 'new' : formData.clientId}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val === 'new') {
+                                            setFormData({ ...formData, isNewClient: true, clientId: '', name: '', phone: '', email: '', company: '' });
+                                        } else {
+                                            const selectedClient = clientsList.find(c => c.id === val);
+                                            if (selectedClient) {
+                                                setFormData({
+                                                    ...formData,
+                                                    isNewClient: false,
+                                                    clientId: val,
+                                                    name: selectedClient.name,
+                                                    phone: selectedClient.phone || '',
+                                                    email: selectedClient.email || '',
+                                                    company: selectedClient.company || ''
+                                                });
+                                            }
+                                        }
+                                    }}
+                                >
+                                    <option value="new">+ Create New Client</option>
+                                    <optgroup label="Existing Clients">
+                                        {clientsList.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name} {c.company ? `(${c.company})` : ''}</option>
+                                        ))}
+                                    </optgroup>
+                                </select>
+                            </div>
+                        )}
+
                         <div className="form-row">
                             <div className="form-group">
                                 <label className="form-label">Name *</label>
-                                <input required className="form-input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                <input required className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Company</label>
-                                <input className="form-input" value={formData.company} onChange={e => setFormData({ ...formData, company: e.target.value })} />
+                                <input className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.company} onChange={e => setFormData({ ...formData, company: e.target.value })} />
                             </div>
                         </div>
 
                         <div className="form-row">
                             <div className="form-group">
                                 <label className="form-label">Phone</label>
-                                <input className="form-input" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                                <input className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Email</label>
-                                <input type="email" className="form-input" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                <input type="email" className="form-input" disabled={!formData.isNewClient && !existingLead} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                             </div>
                         </div>
 

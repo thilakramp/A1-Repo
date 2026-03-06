@@ -4,6 +4,7 @@ import { clientApi } from '../../services/api/client';
 import type { Client } from '../../types/client';
 import { useAuth } from '../../context/AuthContext';
 import { truncateText } from '../../utils/crmUtils';
+import { ClientModal, type ClientFormData } from '../../components/clients/ClientModal';
 import './ClientsManager.css';
 
 export function ClientsManager() {
@@ -11,6 +12,10 @@ export function ClientsManager() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuth();
+
+    // Modal states
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingClient, setEditingClient] = useState<Client | null>(null);
 
     // Deletion
     const [isDeleting, setIsDeleting] = useState(false);
@@ -48,6 +53,22 @@ export function ClientsManager() {
             } finally {
                 setIsDeleting(false);
             }
+        }
+    };
+
+    const handleEditClient = (client: Client) => {
+        setEditingClient(client);
+        setIsModalOpen(true);
+    };
+
+    const handleUpdateClient = async (id: string, updates: Partial<ClientFormData>) => {
+        try {
+            await clientApi.updateClient(id, updates);
+            fetchClients();
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Failed to update client:', error);
+            alert('Failed to update client.');
         }
     };
 
@@ -120,6 +141,14 @@ export function ClientsManager() {
                                     {user?.role === 'Admin' && (
                                         <td className="text-right">
                                             <button
+                                                className="btn-edit-icon"
+                                                onClick={() => handleEditClient(client)}
+                                                style={{ marginRight: '8px' }}
+                                                title="Edit Client"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
                                                 className="btn-delete-icon"
                                                 onClick={() => handleDeleteClient(client.id, client.name)}
                                                 disabled={isDeleting}
@@ -142,6 +171,15 @@ export function ClientsManager() {
                     </table>
                 )}
             </div>
+
+            <ClientModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                existingClient={editingClient}
+                onUpdate={handleUpdateClient}
+                onDelete={async (id) => handleDeleteClient(id, editingClient?.name || '')}
+                onSave={async () => { /* New clients usually created through CRM pipeline */ }}
+            />
         </div>
     );
 }
